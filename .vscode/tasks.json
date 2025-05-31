@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Tests with Coverage (Cobertura XML)",
+      "type": "shell",
+      "command": "dotnet test --settings tests.runsettings --results-directory ./TestResults",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Run Tests with Coverage (Cobertura HTML)",
+      "type": "shell",
+      "command": "reportgenerator -reports:\"TestResults/**/coverage.cobertura.xml\"  -targetdir:tests-coverage/ -reporttypes:Html",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": "$msCompile",
+      "dependsOn": "Run Tests with Coverage (Cobertura XML)"
+    }
+  ]
+}
