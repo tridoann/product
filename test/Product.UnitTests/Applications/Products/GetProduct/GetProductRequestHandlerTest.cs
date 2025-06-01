@@ -43,8 +43,17 @@ public class GetProductRequestHandlerTest
         _unitOfWorkMock.Setup(uow => uow.GetRepository<Domain.Entities.Product>(false))
             .Returns(productRepoMock.Object);
 
+        _cacheMock.Setup(cache => cache.GetAsync($"Product_{productId}", It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(null as byte[])); // Simulate cache miss
+        _cacheMock.Setup(cache => cache.SetAsync(
+                It.IsAny<string>(),
+                It.IsAny<byte[]>(),
+                It.IsAny<DistributedCacheEntryOptions>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
         // Act
-        var response = await _handler.Handle(request, CancellationToken.None);
+        var response = await _handler.Handle(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(response);

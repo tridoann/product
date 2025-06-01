@@ -30,7 +30,7 @@ var app = builder.Build();
 using var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
 var context = serviceScope.ServiceProvider
     .GetRequiredService<Product.Infrastructure.Database.ProductDbContext>();
-
+// await context.Database.EnsureCreatedAsync();
 // Check and apply pending migrations
 var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
 if (pendingMigrations.Any())
@@ -55,3 +55,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 await app.RunAsync();
+
+
+public partial class Program { }

@@ -5,7 +5,7 @@ using Product.Application.Products.GetProduct;
 namespace Product.Api.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class ProductsController
         (IMediator mediator)
     : ControllerBase

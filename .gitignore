@@ -4,6 +4,7 @@ src/Product.Domain/bin/
 src/Product.Infrastructure/bin/
 src/Product.Utilities/bin/
 test/Product.UnitTests/bin/
+test/Product.IntegrationTests/bin/
 
 src/Product.Api/obj/
 src/Product.Application/obj/
@@ -11,6 +12,7 @@ src/Product.Domain/obj/
 src/Product.Infrastructure/obj/
 src/Product.Utilities/obj/
 test/Product.UnitTests/obj/
+test/Product.IntegrationTests/obj/
 
 TestResults/
 tests-coverage/
