@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+  cache:
+    container_name: redis-server
+    image: redis:7.2.4-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass Pass1234!
+    volumes: 
+      - cache:/data
+    networks:
+      - backend
+  # rabbitmq:
+  #   image: "rabbitmq:3.12.12-management"
+  #   container_name: message-broker
+  #   ports:
+  #     - "15672:15672"
+  #     - "5672:5672"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: "rabbitmq"
+  #     RABBITMQ_DEFAULT_PASS: "Pass1234!"
+  mssql:
+    container_name: sql-server
+    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
+    restart: always
+    user: root
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Pass1234!"
+    ports:
+      - 1433:1433
+    volumes:
+    - ~/docker/sql/mssql/:/var/opt/mssql/
+    - ~/docker/sql/sqlserver/:/var/opt/sqlserver/
+    networks:
+      - backend
+  product-service:
+    container_name: product-service
+    image: product-service
+    restart: always
+    user: root
+    environment:
+      ConnectionStrings__DefaultConnection: "Data Source=sql-server;Initial Catalog=Product-Develop;User Id=sa;Password=Pass1234!;TrustServerCertificate=True"
+      ConnectionStrings__RedisConnection: "redis-server:6379,password=Pass1234!"
+    ports:
+      - 7026:80
+    networks:
+      - backend
+volumes:
+  cache:
+    driver: local
+networks:
+  backend: 
+    name: "product_compose"

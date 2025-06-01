@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Copy csproj and restore as distinct layers
 COPY ./src .
+COPY ./Directory.Packages.props .
 RUN dotnet restore ./**/Product.Api.csproj
 
 # Install the necessary ICU libraries

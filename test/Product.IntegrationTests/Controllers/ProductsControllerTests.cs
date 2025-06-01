@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Product.IntegrationTests;
 using Xunit;
 
@@ -8,14 +9,31 @@ namespace Product.IntegrationTest.Configurations;
 [Collection(nameof(ProductCollectionFixture))]
 public class ProductsControllerTests(
         ProductContainerFixture containerFixture,
-        WebApplicationFactory<Program> factory)
+        WebApplicationFactory<Program> factory) 
     : BaseContainerTest<Program>(containerFixture, factory)
 {
+    private async Task<Domain.Entities.Product> InitDataAsync()
+    {
+        var context = ServiceProvider!.GetRequiredService<Product.Infrastructure.Database.ProductDbContext>();
+        var entityEntry = await context.Products.AddAsync(new Product.Domain.Entities.Product
+        {
+            Name = "Sample Product",
+            Description = "This is a sample product description.",
+            Price = 19.99m,
+            CreatedAt = new DateTime(2023, 1, 1),
+            UpdatedAt = new DateTime(2023, 1, 1),
+        });
+        await context.SaveChangesAsync();
+        return entityEntry.Entity;
+    }
+
     [Fact]
     public async Task GetProducts_ShouldReturnOk()
     {
-        var id = 1;
+
         // Arrange
+        var entity = await InitDataAsync();
+        var id = entity.Id;
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/products/{id}");
 
         // Act

@@ -61,4 +61,55 @@ public class GetProductRequestHandlerTest
         Assert.Equal(product.Description, response.Description);
         Assert.Equal(product.Price, response.Price);
     }
+
+
+    [Fact]
+    public async Task Handle_ShouldReturnProduct_WhenProductExistsWithCacheHit()
+    {
+        // Arrange
+        var productId = 1;
+        var request = new GetProductRequest { Id = productId };
+        var response = new GetProductResponse()
+        {
+            Description = "someThing",
+            Name = "product",
+            Price = decimal.One
+        };
+
+        _cacheMock.Setup(cache => cache.GetAsync($"Product_{productId}", It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(
+                System.Text.Encoding.UTF8.GetBytes(
+                    System.Text.Json.JsonSerializer.Serialize(
+                        response)))!); // Simulate cache hit
+
+        // Act
+        var result = await _handler.Handle(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal(result.Name, response.Name);
+        Assert.Equal(result.Description, response.Description);
+        Assert.Equal(result.Price, response.Price);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowException_WhenDeserializeFailWithCacheHit()
+    {
+        // Arrange
+        var productId = 1;
+        var request = new GetProductRequest { Id = productId };
+
+        _cacheMock.Setup(cache => cache.GetAsync($"Product_{productId}", It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(
+                System.Text.Encoding.UTF8.GetBytes(
+                    System.Text.Json.JsonSerializer.Serialize(
+                        new
+                        {
+                            Text = 1
+                        })))!); // Simulate cache hit
+
+        // Act & Assert
+        await Assert.ThrowsAsync<System.Text.Json.JsonException>(
+            () => _handler.Handle(request, TestContext.Current.CancellationToken));
+    }
 }
