@@ -1,0 +1,108 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sqlserver-mssql-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-sql
+  hostPath:
+    path: /mnt/data/sqlserver/mssql   # Update this path to a suitable directory on your node
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sqlserver-mssql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual-sql
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sqlserver-sqlserver-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-sql
+  hostPath:
+    path: /mnt/data/sqlserver/sqlserver   # Update this path accordingly
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sqlserver-sqlserver-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual-sql
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sql-server
+  labels:
+    app: sql-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sql-server
+  template:
+    metadata:
+      labels:
+        app: sql-server
+    spec:
+      containers:
+        - name: sql-server
+          image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
+          ports:
+            - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: SA_PASSWORD
+              value: "Pass1234!"
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: mssql-data
+              mountPath: /var/opt/mssql
+            - name: sqlserver-data
+              mountPath: /var/opt/sqlserver
+      volumes:
+        - name: mssql-data
+          persistentVolumeClaim:
+            claimName: sqlserver-mssql-pvc
+        - name: sqlserver-data
+          persistentVolumeClaim:
+            claimName: sqlserver-sqlserver-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-server
+spec:
+  selector:
+    app: sql-server
+  ports:
+    - protocol: TCP
+      port: 1433
+      targetPort: 1433

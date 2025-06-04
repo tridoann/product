@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-cache-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""    # This should match the PVC's storageClassName
+  hostPath:
+    path: /mnt/data/redis   # Adjust this path to a suitable directory on your node
+
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-cache-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  # Provide a storage class if applicable, or leave blank to use the default
+  storageClassName: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-server
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis-server
+          image: redis:7.2.4-alpine
+          command: 
+            - "redis-server"
+            - "--save"
+            - "20"
+            - "1"
+            - "--loglevel"
+            - "warning"
+            - "--requirepass"
+            - "Pass1234!"
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-cache
+              mountPath: /data
+      volumes:
+        - name: redis-cache
+          persistentVolumeClaim:
+            claimName: redis-cache-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379

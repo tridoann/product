@@ -11,15 +11,6 @@ services:
       - cache:/data
     networks:
       - backend
-  # rabbitmq:
-  #   image: "rabbitmq:3.12.12-management"
-  #   container_name: message-broker
-  #   ports:
-  #     - "15672:15672"
-  #     - "5672:5672"
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: "rabbitmq"
-  #     RABBITMQ_DEFAULT_PASS: "Pass1234!"
   mssql:
     container_name: sql-server
     image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
@@ -37,7 +28,7 @@ services:
       - backend
   product-service:
     container_name: product-service
-    image: product-service
+    image: tridoann/product
     restart: always
     user: root
     environment:
