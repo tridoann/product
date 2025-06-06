@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Product.Application.Products.CreateProduct;
 using Product.Application.Products.GetProduct;
 
 namespace Product.Api.Controllers;
@@ -20,6 +21,14 @@ public class ProductsController
             Id = id
         };
 
+        var response = await _mediator.Send(request);
+
+        return Ok(response);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Get([FromBody] CreateProductRequest request)
+    {
         var response = await _mediator.Send(request);
 
         return Ok(response);

@@ -18,3 +18,5 @@ TestResults/
 tests-coverage/
 
 .vs
+
+frond-end/my-react-app/node_modules

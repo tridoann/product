@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Product.Application.Exceptions;
 
 namespace Product.Application.Middlewares;
 
@@ -42,9 +43,22 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
     {
         return exception switch
         {
-            ArgumentOutOfRangeException => (StatusCodes.Status400BadRequest, exception.Message),
-            KeyNotFoundException => (StatusCodes.Status404NotFound, exception.Message),
-            _ => (StatusCodes.Status500InternalServerError, "We are sorry for the inconvenience but we are on it.")
+            ArgumentOutOfRangeException => (StatusCodes.Status400BadRequest,
+                exception.Message),
+            ValidationException => (StatusCodes.Status400BadRequest,
+                GenerateFluentValidationErrorMessage((exception as ValidationException)!.Failures)),
+            KeyNotFoundException => (StatusCodes.Status404NotFound,
+                exception.Message),
+            _ => (StatusCodes.Status500InternalServerError,
+                "We are sorry for the inconvenience but we are on it.")
         };
+    }
+
+    private static string GenerateFluentValidationErrorMessage(
+        IDictionary<string, string[]> failures)
+    {
+        return string.Join("; ",
+            failures.Select(failure =>
+                $"{failure.Key}: {string.Join(", ", failure.Value)}"));
     }
 }

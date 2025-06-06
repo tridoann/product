@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Product.Infrastructure.Repositories;
-using Product.Infrastructure.UnitOfWork;
+
 
 namespace Product.Infrastructure.Extensions;
 
@@ -11,8 +10,6 @@ public static class InfrastructureExtensions
     {
         services.AddSqlServer(configuration);
         services.AddStackExchangeRedisCache(configuration);
-        services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
-        services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
         return services;
     }

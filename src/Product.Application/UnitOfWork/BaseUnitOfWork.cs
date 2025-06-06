@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Product.Infrastructure.Repositories;
 
-namespace Product.Infrastructure.UnitOfWork;
 
-public class UnitOfWork<TContext> : IUnitOfWork<TContext>, IDisposable where TContext : DbContext
+namespace Product.Application.UnitOfWork;
+
+public class BaseUnitOfWork<TContext> : IBaseUnitOfWork<TContext>, IDisposable where TContext : DbContext
 {
     private readonly TContext _context;
     private bool _disposed = false;
@@ -14,32 +13,10 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>, IDisposable where TCo
     public TContext DbContext => _context;
 
 
-    public UnitOfWork(TContext context)
+    public BaseUnitOfWork(TContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
         _context = context;
-    }
-
-    public IRepository<TEntity> GetRepository<TEntity>(bool hasCustomRepository = false) where TEntity : class
-    {
-        _repositories ??= [];
-
-        if (hasCustomRepository)
-        {
-            var customRepo = _context.GetService<IRepository<TEntity>>();
-            if (customRepo is not null)
-            {
-                return customRepo;
-            }
-        }
-
-        var type = typeof(TEntity);
-        if (!_repositories.ContainsKey(type))
-        {
-            _repositories[type] = new BaseRepository<TEntity>(_context);
-        }
-
-        return (IRepository<TEntity>)_repositories[type];
     }
 
     public int ExecuteSqlCommand(string sql, params object[] parameters)
@@ -50,7 +27,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>, IDisposable where TCo
         => _context.Set<TEntity>().FromSqlRaw(sql, parameters);
 
 
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public async Task<int> CommitAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);
     }

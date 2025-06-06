@@ -1,25 +1,26 @@
 using Moq;
 using Xunit;
 using Product.Application.Products.GetProduct;
-using Product.Infrastructure.UnitOfWork;
 using Product.Infrastructure.Database;
 using Microsoft.Extensions.Caching.Distributed;
 using Product.Infrastructure.Repositories;
 using MockQueryable;
+using Product.Domain.Repositories;
 
 namespace Product.UnitTests.Applications.Products.GetProduct;
 
 public class GetProductRequestHandlerTest
 {
     private readonly GetProductRequestHandler _handler;
-    private readonly Mock<IUnitOfWork<ProductDbContext>> _unitOfWorkMock;
     private readonly Mock<IDistributedCache> _cacheMock;
+    private readonly Mock<IProductRepository> _productRepositoryMock;
 
     public GetProductRequestHandlerTest()
     {
-        _unitOfWorkMock = new Mock<IUnitOfWork<ProductDbContext>>();
         _cacheMock = new Mock<IDistributedCache>();
-        _handler = new GetProductRequestHandler(_unitOfWorkMock.Object, _cacheMock.Object);
+        _productRepositoryMock = new Mock<IProductRepository>();
+        _handler = new GetProductRequestHandler(
+            _productRepositoryMock.Object, _cacheMock.Object);
     }
 
     [Fact]
@@ -36,12 +37,8 @@ public class GetProductRequestHandlerTest
             Price = 100.0m
         };
 
-        var productRepoMock = new Mock<IRepository<Domain.Entities.Product>>();
-        productRepoMock.Setup(repo => repo.Get())
-            .Returns(new List<Domain.Entities.Product> { product }.BuildMock().AsQueryable());
-
-        _unitOfWorkMock.Setup(uow => uow.GetRepository<Domain.Entities.Product>(false))
-            .Returns(productRepoMock.Object);
+        _productRepositoryMock.Setup(repo => repo.GetAsync(productId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
 
         _cacheMock.Setup(cache => cache.GetAsync($"Product_{productId}", It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(null as byte[])); // Simulate cache miss
