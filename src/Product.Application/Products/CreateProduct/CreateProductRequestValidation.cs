@@ -19,7 +19,7 @@ public class CreateProductRequestValidation : AbstractValidator<CreateProductReq
             .WithMessage("Description must not exceed 500 characters.");
 
         RuleFor(x => x.Price)
-            .GreaterThan(0)
-            .WithMessage("Price must be greater than zero.");
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Price must be greater than or equal to zero.");
     }
 }

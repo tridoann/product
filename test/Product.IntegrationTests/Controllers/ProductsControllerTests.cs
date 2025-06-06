@@ -1,5 +1,8 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Product.Application.Products.CreateProduct;
 using Product.IntegrationTests;
 using Xunit;
 
@@ -45,6 +48,35 @@ public class ProductsControllerTests(
     }
 
     [Fact]
+    public async Task CreateProduct_ShouldReturnOk()
+    {
+        // Arrange
+        var createProductRequest = new CreateProductRequest()
+        {
+            Description = "test",
+            Name = "test",
+            Price = decimal.One
+        };
+        
+        var request = new HttpRequestMessage()
+        {
+            Method = HttpMethod.Post,
+            Content = new StringContent(
+                JsonSerializer.Serialize(createProductRequest),
+                Encoding.UTF8,
+                "application/json"),
+            RequestUri = new Uri($"/api/products"),
+        };
+
+        // Act
+        var response = await HttpClient!.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetProducts_ShouldReturnNotFound()
     {
         var id = 0;
@@ -56,5 +88,33 @@ public class ProductsControllerTests(
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateProduct_ShouldReturnBadRequest_WithZeroPrice()
+    {
+        // Arrange
+        var createProductRequest = new CreateProductRequest()
+        {
+            Description = "test",
+            Name = "test",
+            Price = decimal.MinusOne
+        };
+        
+        var request = new HttpRequestMessage()
+        {
+            Method = HttpMethod.Post,
+            Content = new StringContent(
+                JsonSerializer.Serialize(createProductRequest),
+                Encoding.UTF8,
+                "application/json"),
+            RequestUri = new Uri($"/api/products"),
+        };
+
+        // Act
+        var response = await HttpClient!.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
