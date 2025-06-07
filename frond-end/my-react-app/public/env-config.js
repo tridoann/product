@@ -1,1 +1,3 @@
-windows._env.API_URL = 'http://localhost:5132/';
+window._env_ = {
+  REACT_APP_API_URL: "http://localhost:7026"
+};

@@ -38,6 +38,17 @@ services:
       - 7026:80
     networks:
       - backend
+  react-service:
+    container_name: react-service
+    image: my-react-app
+    restart: always
+    user: root
+    environment:
+      REACT_APP_API_URL: http://localhost:7026
+    ports:
+      - 3001:80
+    networks:
+      - backend
 volumes:
   cache:
     driver: local

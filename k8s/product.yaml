@@ -6,7 +6,7 @@ metadata:
   labels:
     app: product-service
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: product-service
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: product-service
-          image: tridoann/product
+          image: tridoann/product:v1
           ports:
             - containerPort: 80
           env:
@@ -46,12 +46,13 @@ metadata:
   name: product-service-ingress
   annotations:
     kubernetes.io/ingress.class: "nginx"  # Adjust if you use a different ingress controller
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
     # - host: product-service.example.com   # Change this host to your intended domain
     - http:
         paths:
-          - path: /
+          - path: /(prd)/(.*)
             pathType: Prefix
             backend:
               service:
