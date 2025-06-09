@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Product.Application.Middlewares;
 using Product.Application.Pipeline;
 using Product.Application.Products.CreateProduct;
+using Product.Application.Products.GetProducts;
 using Product.Application.UnitOfWork;
 using Product.Domain.Repositories;
 using Product.Infrastructure.Repositories;
@@ -27,6 +28,7 @@ public static class ServiceInjectionExtension
         services.AddScoped<IProductRepository, ProductRepository>();
 
         services.AddScoped<FluentValidation.IValidator<CreateProductRequest>, CreateProductRequestValidation>();
+        services.AddScoped<FluentValidation.IValidator<GetProductsRequest>, GetProductsRequestValidation>();
 
         return services;
     }

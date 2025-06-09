@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Product.Common.Models;
+using System.Linq.Dynamic.Core;
 using Product.Domain.Entities;
 using Product.Domain.Repositories;
 
 namespace Product.Infrastructure.Repositories;
 
-public class BaseRepository<TEntity, TKey> 
+public abstract class BaseRepository<TEntity, TKey>
     : IRepository<TEntity, TKey>
     where TEntity : BaseEntity<TKey>
     where TKey : notnull
@@ -13,14 +15,14 @@ public class BaseRepository<TEntity, TKey>
     protected readonly DbSet<TEntity> _dbSet;
 
 
-    public BaseRepository(DbContext dbContext)
+    protected BaseRepository(DbContext dbContext)
     {
         ArgumentNullException.ThrowIfNull(dbContext);
         _dbContext = dbContext;
         _dbSet = _dbContext.Set<TEntity>();
     }
 
-    public IQueryable<TEntity> Get()
+    public IQueryable<TEntity> GetDbSet()
     {
         return _dbSet;
     }
@@ -38,5 +40,45 @@ public class BaseRepository<TEntity, TKey>
         ArgumentNullException.ThrowIfNull(entity);
         var entry = await _dbSet.AddAsync(entity);
         return entry.Entity;
+    }
+
+    protected abstract IQueryable<TEntity> GetPagedCondition(string? searchQuery = null);
+
+    public virtual async Task<PagedList<TEntity>> ToPagedListAsync(
+        int pageIndex,
+        int pageSize,
+        string? searchQuery = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (pageIndex < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageIndex), "Page index must be greater than or equal to 1.");
+        }
+        if (pageSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than or equal to 1.");
+        }
+
+        var source = GetPagedCondition(searchQuery);
+
+        var totalItems = await source.CountAsync(cancellationToken);
+
+        var items = await source
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedList<TEntity>
+        {
+            Items = items,
+            TotalCount = totalItems,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        };
+    }
+
+    public Type GetEntityType()
+    {
+        return typeof(TEntity);
     }
 }

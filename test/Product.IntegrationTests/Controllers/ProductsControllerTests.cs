@@ -12,7 +12,7 @@ namespace Product.IntegrationTest.Configurations;
 [Collection(nameof(ProductCollectionFixture))]
 public class ProductsControllerTests(
         ProductContainerFixture containerFixture,
-        WebApplicationFactory<Program> factory) 
+        WebApplicationFactory<Program> factory)
     : BaseContainerTest<Program>(containerFixture, factory)
 {
     private async Task<Domain.Entities.Product> InitDataAsync()
@@ -31,7 +31,7 @@ public class ProductsControllerTests(
     }
 
     [Fact]
-    public async Task GetProducts_ShouldReturnOk()
+    public async Task GetProduct_ShouldReturnOk()
     {
 
         // Arrange
@@ -57,7 +57,7 @@ public class ProductsControllerTests(
             Name = "test",
             Price = decimal.One
         };
-        
+
         var request = new HttpRequestMessage()
         {
             Method = HttpMethod.Post,
@@ -77,10 +77,10 @@ public class ProductsControllerTests(
     }
 
     [Fact]
-    public async Task GetProducts_ShouldReturnNotFound()
+    public async Task GetProduct_ShouldReturnNotFound_WhenNoProductId()
     {
-        var id = 0;
         // Arrange
+        var id = 0;
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/products/{id}");
 
         // Act
@@ -100,7 +100,7 @@ public class ProductsControllerTests(
             Name = "test",
             Price = decimal.MinusOne
         };
-        
+
         var request = new HttpRequestMessage()
         {
             Method = HttpMethod.Post,
@@ -116,5 +116,33 @@ public class ProductsControllerTests(
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    
+    [Fact]
+    public async Task GetPagedListProducts_ShouldReturnOk()
+    {
+        // Arrange
+        var entity = await InitDataAsync();
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            $"/api/products?SearchQuery={entity.Name}");
+
+        // Act
+        var response = await HttpClient!.SendAsync(request,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        var content = await response.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken);
+
+        var productsResponse = JsonSerializer
+            .Deserialize<Product.Application.Products.GetProducts.GetProductsResponse>(
+                content, options: new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.NotNull(productsResponse);
+        Assert.NotEmpty(productsResponse.Items);
+        Assert.Equal(entity.Name, productsResponse.Items.First().Name);
+
     }
 }

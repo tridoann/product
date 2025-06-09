@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="../Product.Common/Product.Common.csproj" />
     <ProjectReference Include="..\Product.Domain\Product.Domain.csproj" />
   </ItemGroup>
 
@@ -10,6 +11,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="System.Linq.Dynamic.Core" />
   </ItemGroup>
 
 </Project>
