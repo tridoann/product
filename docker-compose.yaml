@@ -31,6 +31,8 @@ services:
     image: tridoann/product
     restart: always
     user: root
+    build:
+      dockerfile: Dockerfile
     environment:
       ConnectionStrings__DefaultConnection: "Data Source=sql-server;Initial Catalog=Product-Develop;User Id=sa;Password=Pass1234!;TrustServerCertificate=True"
       ConnectionStrings__RedisConnection: "redis-server:6379,password=Pass1234!"
@@ -40,9 +42,12 @@ services:
       - backend
   react-service:
     container_name: react-service
-    image: my-react-app
+    image: tridoann/my-react-app
     restart: always
     user: root
+    build:
+      context: ./frond-end/my-react-app
+      dockerfile: Dockerfile
     environment:
       REACT_APP_API_URL: http://localhost:7026
     ports:
