@@ -1,9 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Product.Application.UnitOfWork;
 
 
-namespace Product.Application.UnitOfWork;
+namespace Product.Infrastructure.UnitOfWork;
 
-public class BaseUnitOfWork<TContext> : IBaseUnitOfWork<TContext>, IDisposable where TContext : DbContext
+public class BaseUnitOfWork<TContext> : IBaseUnitOfWork<TContext>
+        , IDisposable
+    where TContext : DbContext
 {
     private readonly TContext _context;
     private bool _disposed = false;

@@ -6,11 +6,11 @@ services:
     restart: always
     ports:
       - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning --requirepass Pass1234!
-    volumes: 
+    command: redis-server --save 20 1 --loglevel warning --requirepass d0e0EHg2mp15431btuYD5ZfM3n42evXNpLk83c
+    volumes:
       - cache:/data
     networks:
-      - backend
+      - test_mf_network
   mssql:
     container_name: sql-server
     image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
@@ -22,41 +22,64 @@ services:
     ports:
       - 1433:1433
     volumes:
-    - ~/docker/sql/mssql/:/var/opt/mssql/
-    - ~/docker/sql/sqlserver/:/var/opt/sqlserver/
+      - ~/docker/sql/mssql/:/var/opt/mssql/
+      - ~/docker/sql/sqlserver/:/var/opt/sqlserver/
     networks:
-      - backend
-  product-service:
-    container_name: product-service
-    image: tridoann/product
+      - test_mf_network
+  postgres:
+    image: 'postgres:14.18'
+    container_name: postgres_db
     restart: always
-    user: root
-    build:
-      dockerfile: Dockerfile
-    environment:
-      ConnectionStrings__DefaultConnection: "Data Source=sql-server;Initial Catalog=Product-Develop;User Id=sa;Password=Pass1234!;TrustServerCertificate=True"
-      ConnectionStrings__RedisConnection: "redis-server:6379,password=Pass1234!"
     ports:
-      - 7026:80
+    - '5432:5432'
+    environment:
+      # POSTGRES_USER: sa
+      POSTGRES_PASSWORD: Pass1234!
+      # POSTGRES_DB: default_database
     networks:
-      - backend
-  react-service:
-    container_name: react-service
-    image: tridoann/my-react-app
+      - test_mf_network
+    volumes:
+      - ~/docker/sql/postgresql/:/var/lib/postgresql/data
+  db-postgres:
+    image: postgres:14.18
+    container_name: sonar_db
     restart: always
-    user: root
-    build:
-      context: ./frond-end/my-react-app
-      dockerfile: Dockerfile
-    environment:
-      REACT_APP_API_URL: http://localhost:7026
     ports:
-      - 3001:80
-    networks:
-      - backend
+    - '5433:5432'
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - ~/docker/sonar/postgresql/:/var/lib/postgresql/data
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonar
+    restart: always
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+      SONAR_JDBC_URL: jdbc:postgresql://db-postgres:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_temp:/opt/sonarqube/temp
+    depends_on:
+      - db-postgres
 volumes:
   cache:
     driver: local
+  sonarqube_conf:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonarqube_temp:
+  postgresql:
+  postgres_data:
 networks:
-  backend: 
-    name: "product_compose"
+  test_mf_network:

@@ -1,10 +1,7 @@
 using Moq;
 using Xunit;
 using Product.Application.Products.GetProduct;
-using Product.Infrastructure.Database;
 using Microsoft.Extensions.Caching.Distributed;
-using Product.Infrastructure.Repositories;
-using MockQueryable;
 using Product.Domain.Repositories;
 
 namespace Product.UnitTests.Applications.Products.GetProduct;

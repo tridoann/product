@@ -1,6 +1,6 @@
 namespace Product.Application.UnitOfWork;
 
 public interface IUnitOfWork
-    : IBaseUnitOfWork<Infrastructure.Database.ProductDbContext>
 {
+    Task<int> CommitAsync(CancellationToken cancellationToken = default);
 }

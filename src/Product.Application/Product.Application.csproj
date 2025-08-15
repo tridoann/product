@@ -2,8 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Product.Common/Product.Common.csproj" />
-    <ProjectReference Include="..\Product.Domain\Product.Domain.csproj" />
-    <ProjectReference Include="..\Product.Infrastructure\Product.Infrastructure.csproj" />
+    <ProjectReference Include="../Product.Domain/Product.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

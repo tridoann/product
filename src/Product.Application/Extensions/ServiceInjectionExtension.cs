@@ -8,7 +8,6 @@ using Product.Application.Products.CreateProduct;
 using Product.Application.Products.GetProducts;
 using Product.Application.UnitOfWork;
 using Product.Domain.Repositories;
-using Product.Infrastructure.Repositories;
 
 
 namespace Product.Application.Extensions;
@@ -24,8 +23,7 @@ public static class ServiceInjectionExtension
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
-        services.AddScoped<IUnitOfWork, Product.Application.UnitOfWork.UnitOfWork>();
-        services.AddScoped<IProductRepository, ProductRepository>();
+        
 
         services.AddScoped<FluentValidation.IValidator<CreateProductRequest>, CreateProductRequestValidation>();
         services.AddScoped<FluentValidation.IValidator<GetProductsRequest>, GetProductsRequestValidation>();
