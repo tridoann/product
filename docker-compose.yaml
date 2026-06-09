@@ -1,5 +1,28 @@
 version: '3.8'
+
 services:
+  # ─── Infrastructure ────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:14.18
+    container_name: postgres_db
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Pass1234!
+      POSTGRES_DB: Product-Develop
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   cache:
     container_name: redis-server
     image: redis:7.2.4-alpine
@@ -10,76 +33,62 @@ services:
     volumes:
       - cache:/data
     networks:
-      - test_mf_network
-  mssql:
-    container_name: sql-server
-    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
-    restart: always
-    user: root
-    environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: "Pass1234!"
-    ports:
-      - 1433:1433
-    volumes:
-      - ~/docker/sql/mssql/:/var/opt/mssql/
-      - ~/docker/sql/sqlserver/:/var/opt/sqlserver/
-    networks:
-      - test_mf_network
-  postgres:
-    image: 'postgres:14.18'
-    container_name: postgres_db
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "d0e0EHg2mp15431btuYD5ZfM3n42evXNpLk83c", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend API ───────────────────────────────────────────────────────────
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: product_api
     restart: always
     ports:
-    - '5432:5432'
+      - '8080:80'
     environment:
-      # POSTGRES_USER: sa
-      POSTGRES_PASSWORD: Pass1234!
-      # POSTGRES_DB: default_database
-    networks:
-      - test_mf_network
-    volumes:
-      - ~/docker/sql/postgresql/:/var/lib/postgresql/data
-  db-postgres:
-    image: postgres:14.18
-    container_name: sonar_db
-    restart: always
-    ports:
-    - '5433:5432'
-    environment:
-      POSTGRES_USER: sonar
-      POSTGRES_PASSWORD: sonar
-      POSTGRES_DB: sonar
-    volumes:
-      - ~/docker/sonar/postgresql/:/var/lib/postgresql/data
-  sonarqube:
-    image: sonarqube:community
-    container_name: sonar
-    restart: always
-    environment:
-      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
-      SONAR_JDBC_URL: jdbc:postgresql://db-postgres:5432/sonar
-      SONAR_JDBC_USERNAME: sonar
-      SONAR_JDBC_PASSWORD: sonar
-    ports:
-      - "9000:9000"
-    volumes:
-      - sonarqube_conf:/opt/sonarqube/conf
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
-      - sonarqube_temp:/opt/sonarqube/temp
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=postgres_db;Port=5432;Database=Product-Develop;Username=postgres;Password=Pass1234!"
+      ConnectionStrings__Redis: "redis-server:6379,password=d0e0EHg2mp15431btuYD5ZfM3n42evXNpLk83c"
+      Jwt__SecretKey: "super-secret-jwt-key-at-least-32-chars!!"
+      Jwt__Issuer: "product-api"
+      Jwt__Audience: "product-client"
+      Jwt__ExpiryMinutes: "1440"
     depends_on:
-      - db-postgres
+      postgres:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  # ─── Frontend ──────────────────────────────────────────────────────────────
+
+  frontend:
+    build:
+      context: ./frond-end/my-react-app
+      dockerfile: Dockerfile
+    container_name: product_frontend
+    restart: always
+    ports:
+      - '3000:80'
+    environment:
+      REACT_APP_API_URL: "http://localhost:8080"
+    depends_on:
+      - api
+    networks:
+      - app_network
+
 volumes:
+  postgres_data:
+    driver: local
   cache:
     driver: local
-  sonarqube_conf:
-  sonarqube_data:
-  sonarqube_extensions:
-  sonarqube_logs:
-  sonarqube_temp:
-  postgresql:
-  postgres_data:
+
 networks:
-  test_mf_network:
+  app_network:
+    driver: bridge

@@ -15,12 +15,12 @@ public class GetProductsRequestHandler : IRequestHandler<GetProductsRequest, Get
 
     public async Task<GetProductsResponse> Handle(GetProductsRequest request, CancellationToken cancellationToken)
     {
-        var products = await _productRepository.ToPagedListAsync(
-                pageIndex: request.PageIndex,
-                pageSize: request.PageSize,
-                searchQuery: request.SearchQuery,
-                cancellationToken: cancellationToken)
-            ?? throw new InvalidOperationException("Failed to retrieve products.");
+        var products = await _productRepository.GetPagedAsync(
+                request.CategoryId,
+                request.SearchQuery,
+                request.PageIndex,
+                request.PageSize,
+                cancellationToken);
 
         return new GetProductsResponse()
         {
@@ -30,6 +30,13 @@ public class GetProductsRequestHandler : IRequestHandler<GetProductsRequest, Get
                     Name = p.Name,
                     Description = p.Description,
                     Price = p.Price,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category?.Name,
+                    SellerId = p.SellerId,
+                    SellerDisplayName = p.Seller?.DisplayName,
+                    StockQuantity = p.StockQuantity,
+                    ImageUrl = p.ImageUrl,
+                    IsActive = p.IsActive,
                     CreatedAt = p.CreatedAt,
                     UpdatedAt = p.UpdatedAt
                 })],

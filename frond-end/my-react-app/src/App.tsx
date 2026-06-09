@@ -1,96 +1,66 @@
 import '@ant-design/v5-patch-for-react-19';
-import React, { useState } from "react";
-import { Form, Input, InputNumber, Button, notification } from "antd";
-import "antd/dist/reset.css";
-import { apiClient } from "./common";
+import 'antd/dist/reset.css';
+import React from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import AppLayout from './components/layout/AppLayout';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import AdminRoute from './components/common/AdminRoute';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import FeedPage from './pages/social/FeedPage';
+import FriendsPage from './pages/social/FriendsPage';
+import GroupsPage from './pages/groups/GroupsPage';
+import MessagingPage from './pages/messaging/MessagingPage';
+import CartPage from './pages/commerce/CartPage';
+import OrdersPage from './pages/commerce/OrdersPage';
+import TicketsPage from './pages/support/TicketsPage';
+import CreateTicketPage from './pages/support/CreateTicketPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminTicketsPage from './pages/admin/AdminTicketsPage';
+import AdminOrdersPage from './pages/admin/AdminOrdersPage';
+import ProfilePage from './pages/profile/ProfilePage';
+import SettingsPage from './pages/profile/SettingsPage';
+import GroupDetailPage from './pages/groups/GroupDetailPage';
+import ProductsPage from './pages/commerce/ProductsPage';
+import ProductDetailPage from './pages/commerce/ProductDetailPage';
+import TicketDetailPage from './pages/support/TicketDetailPage';
 
-interface Product {
-  name: string;
-  price: number;
-  description: string;
-}
+const App: React.FC = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-const UploadForm: React.FC = () => {
-  const [form] = Form.useForm();
-  const [fileList, setFileList] = useState<any[]>([]);
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<FeedPage />} />
+          <Route path="/profile/:id" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/groups" element={<GroupsPage />} />
+          <Route path="/groups/:id" element={<GroupDetailPage />} />
+          <Route path="/messages" element={<MessagingPage />} />
+          <Route path="/messages/:id" element={<MessagingPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/support" element={<TicketsPage />} />
+          <Route path="/support/new" element={<CreateTicketPage />} />
+          <Route path="/support/:id" element={<TicketDetailPage />} />
 
-  const onFinish = async (values: any) => {
-    const { name, price, description } = values;
-    const productRequest: Product = {
-      name,
-      price: parseFloat(price),
-      description,
-    };
-    try {
-      const response = await apiClient.post("api/products", productRequest);
-      if (response.status >= 200 && response.status < 300) {
-        form.resetFields();
-        setFileList([]);
-        notification.success({
-          message: "Success",
-          description: `Request successfully!, at path: ${response.data.id}`,
-        });
-      } else {
-        notification.error({
-          message: "Error",
-          description: `${response.data.title}, status: ${response.status}`,
-        });
-      }
-    } catch (error: any) {
-      notification.error({
-        message: "Error",
-        description: "An error occurred during request.",
-      });
-    }
-  };
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/admin/tickets" element={<AdminTicketsPage />} />
+            <Route path="/admin/orders" element={<AdminOrdersPage />} />
+          </Route>
+        </Route>
+      </Route>
+    </Routes>
+  </BrowserRouter>
+);
 
-  return (
-    <div style={{ 
-      display: "flex", 
-      justifyContent: "center", 
-      alignItems: "center", 
-      height: "100vh"
-    }}>
-      <div style={{ 
-        maxWidth: 400, 
-        width: "100%", 
-        padding: "20px", 
-        background: "#fff", 
-        borderRadius: "8px", 
-        boxShadow: "0 2px 10px rgba(0,0,0,0.1)" 
-      }}>
-        <Form form={form} onFinish={onFinish} layout="vertical">
-          <Form.Item
-            label="Name"
-            name="name"
-            rules={[{ required: true, message: "Please input the product name!" }]}
-          >
-            <Input placeholder="Enter product name" />
-          </Form.Item>
-          <Form.Item
-            label="Description"
-            name="description"
-            rules={[{ required: true, message: "Please input the product description!" }]}
-          >
-            <Input placeholder="Enter product description" />
-          </Form.Item>
-          <Form.Item
-            label="Price"
-            name="price"
-            rules={[{ required: true, message: "Please input the price!" }]}
-          >
-            <InputNumber style={{ width: "100%" }} placeholder="Enter price" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </div>
-    </div>
-  );
-};
-
-export default UploadForm;
+export default App;

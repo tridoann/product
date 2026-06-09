@@ -22,14 +22,22 @@ public class GetProductRequestHandler(
                 ?? throw new InvalidOperationException("Deserialization failed.");
         }
 
-        var product = await _productRepository.GetAsync(request.Id, cancellationToken)
+        var product = await _productRepository.GetDetailAsync(request.Id, cancellationToken)
             ?? throw new KeyNotFoundException($"Product with ID {request.Id} not found.");
 
         var response = new GetProductResponse
         {
+            Id = product.Id,
             Name = product.Name,
             Description = product.Description,
-            Price = product.Price
+            Price = product.Price,
+            CategoryId = product.CategoryId,
+            CategoryName = product.Category?.Name,
+            SellerId = product.SellerId,
+            SellerDisplayName = product.Seller?.DisplayName,
+            StockQuantity = product.StockQuantity,
+            ImageUrl = product.ImageUrl,
+            IsActive = product.IsActive,
         };
 
         await _distributedCache.SetStringAsync(

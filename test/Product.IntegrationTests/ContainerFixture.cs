@@ -1,7 +1,7 @@
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using Xunit;
 
@@ -10,10 +10,11 @@ namespace Product.IntegrationTests;
 public abstract class ContainerFixture : IAsyncLifetime
 {
 
-    public const string MsSqlUser = "sa";
-    public const string MsSqlPassword = "sqlserverintegrationtest@1234!";
-    public const ushort MsSqlPort = 1433;
-    public const string MsSqlServerImage = "mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04";
+    public const string PostgresUser = "postgres";
+    public const string PostgresPassword = "postgresintegrationtest@1234!";
+    public const string PostgresDatabase = "ProductDb";
+    public const ushort PostgresPort = 5432;
+    public const string PostgresImage = "postgres:14.18";
 
     public const string RedisPassword = "redistest@1234!";
     internal const ushort RedisPort = 6379;
@@ -22,7 +23,7 @@ public abstract class ContainerFixture : IAsyncLifetime
     public const ushort HttpPort = 8080;
 
 
-    public IContainer MsSql { get; }
+    public PostgreSqlContainer Postgres { get; }
     public RedisContainer Redis { get; }
     protected INetwork Network { get; }
 
@@ -35,15 +36,17 @@ public abstract class ContainerFixture : IAsyncLifetime
             .WithName(Guid.NewGuid().ToString("N"))
             .Build();
 
-        var msSqlHost = Guid.NewGuid().ToString("N");
+        var postgresHost = Guid.NewGuid().ToString("N");
         var redisHost = Guid.NewGuid().ToString("N");
 
-        MsSql = new MsSqlBuilder()
-            .WithImage(MsSqlServerImage)
-            .WithName(msSqlHost)
-            .WithPassword(MsSqlPassword)
+        Postgres = new PostgreSqlBuilder()
+            .WithImage(PostgresImage)
+            .WithName(postgresHost)
+            .WithUsername(PostgresUser)
+            .WithPassword(PostgresPassword)
+            .WithDatabase(PostgresDatabase)
             .WithNetwork(Network)
-            .WithPortBinding(MsSqlPort, true)
+            .WithPortBinding(PostgresPort, true)
             .Build();
 
         Redis = new RedisBuilder()
@@ -53,7 +56,7 @@ public abstract class ContainerFixture : IAsyncLifetime
             .WithPortBinding(RedisPort, true)
             .WithNetwork(Network)
             .Build();
-            
+
         CacheSettings = new Dictionary<string, string>
         {
             {
@@ -73,13 +76,13 @@ public abstract class ContainerFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await Network.CreateAsync();
-        await MsSql.StartAsync();
+        await Postgres.StartAsync();
         await Redis.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
-        await MsSql.DisposeAsync();
+        await Postgres.DisposeAsync();
         await Redis.DisposeAsync();
         await Network.DisposeAsync();
     }

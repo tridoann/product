@@ -42,6 +42,8 @@ public abstract class BaseRepository<TEntity, TKey>
         return entry.Entity;
     }
 
+    public void Remove(TEntity entity) => _dbSet.Remove(entity);
+
     protected abstract IQueryable<TEntity> GetPagedCondition(string? searchQuery = null);
 
     public virtual async Task<PagedList<TEntity>> ToPagedListAsync(

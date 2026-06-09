@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 
 ARG CONFIGURATION=Release
 
@@ -16,7 +16,7 @@ RUN apk add --no-cache icu-libs icu-data-full
 RUN dotnet publish ./**/Product.Api.csproj --no-restore -c $CONFIGURATION -o /release
 
 # Run time image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 
 # Set environment variables for globalization support
 ENV ASPNETCORE_URLS=http://+:80

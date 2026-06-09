@@ -41,13 +41,15 @@ public class ProductsController
     public async Task<IActionResult> GetPagedListAsync(
         [FromQuery] int pageIndex = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string? SearchQuery = null)
+        [FromQuery] string? SearchQuery = null,
+        [FromQuery] int? categoryId = null)
     {
         var request = new GetProductsRequest()
         {
             PageIndex = pageIndex,
             PageSize = pageSize,
             SearchQuery = SearchQuery,
+            CategoryId = categoryId,
         };
 
         var response = await _mediator.Send(request);

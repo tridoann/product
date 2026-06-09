@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../stores/authStore';
 
 declare global {
   interface Window {
@@ -14,5 +15,23 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-    validateStatus: (status) => true
+  validateStatus: () => true,
 });
+
+apiClient.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+apiClient.interceptors.response.use((response) => {
+  if (response.status === 401) {
+    useAuthStore.getState().clearAuth();
+    window.location.href = '/login';
+  }
+  return response;
+});
+
+export default apiClient;

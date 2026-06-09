@@ -1,6 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Product.Api.Hubs;
 using Product.Application.Extensions;
+using Product.Application.Services;
 using Product.Infrastructure.Extensions;
+using Product.Infrastructure.Services;
+
+// Preserve the timezone-agnostic semantics of the previous SQL Server datetime2 columns.
+// This lets both DateTime.UtcNow (Kind=Utc) and unspecified-kind values be written to
+// PostgreSQL 'timestamp without time zone' columns without Npgsql kind validation errors.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -21,6 +29,8 @@ builder.Services.AddInfrastructure(configuration);
 // Add services to the container.
 builder.Services.AddServices();
 
+builder.Services.AddSignalR();
+builder.Services.AddScoped<INotificationService, SignalRNotificationService<NotificationHub>>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -52,9 +62,12 @@ app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization();
+app.MapHub<NotificationHub>("/hubs/notifications").RequireAuthorization();
 
 await app.RunAsync();
 

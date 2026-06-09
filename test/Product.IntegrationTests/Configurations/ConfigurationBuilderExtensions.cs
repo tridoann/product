@@ -47,8 +47,8 @@ public class ContainerConfigurationProvider : ConfigurationProvider
         Data["Redis:Host"] = _container.Redis.Hostname;
         Data["Redis:Port"] = _container.Redis.GetMappedPublicPort(ContainerFixture.RedisPort).ToString();
 
-        Data["Database:Host"] = _container.MsSql.Hostname;
-        Data["Database:Port"] = _container.MsSql.GetMappedPublicPort(ContainerFixture.MsSqlPort).ToString();
+        Data["Database:Host"] = _container.Postgres.Hostname;
+        Data["Database:Port"] = _container.Postgres.GetMappedPublicPort(ContainerFixture.PostgresPort).ToString();
 
         
         // loggin section

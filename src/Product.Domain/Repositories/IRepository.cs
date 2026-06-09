@@ -12,6 +12,7 @@ public interface IRepository<TEntity, TKey>
         CancellationToken cancellationToken = default);
     Task<TEntity?> CreateAsync(TEntity entity,
         CancellationToken cancellationToken = default);
+    void Remove(TEntity entity);
     Task<PagedList<TEntity>> ToPagedListAsync(
         int pageIndex,
         int pageSize,

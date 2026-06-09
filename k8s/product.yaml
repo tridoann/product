@@ -22,7 +22,7 @@ spec:
             - containerPort: 80
           env:
             - name: ConnectionStrings__DefaultConnection
-              value: "Data Source=sql-server;Initial Catalog=Product-Develop;User Id=sa;Password=Pass1234!;TrustServerCertificate=True"
+              value: "Host=postgres;Port=5432;Database=Product-Develop;Username=postgres;Password=Pass1234!"
             - name: ConnectionStrings__RedisConnection
               value: "redis-service:6379,password=Pass1234!"
           securityContext:

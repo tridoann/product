@@ -73,8 +73,8 @@ public abstract class BaseContainerTest<T> : IClassFixture<WebApplicationFactory
     private void OverrideContainerVariables(IServiceCollection serviceCollection)
     {
         var optionsBuilder = new DbContextOptionsBuilder<ProductDbContext>();
-        var sqlConnectionString = @$"Server=localhost,{Container.MsSql.GetMappedPublicPort(ContainerFixture.MsSqlPort)};Database=ProductDb;User Id=sa;Password={ContainerFixture.MsSqlPassword};Persist Security Info=False;Encrypt=False";
-        optionsBuilder.UseSqlServer(sqlConnectionString, sqlOptions => sqlOptions.CommandTimeout(3600));
+        var postgresConnectionString = @$"Host=localhost;Port={Container.Postgres.GetMappedPublicPort(ContainerFixture.PostgresPort)};Database={ContainerFixture.PostgresDatabase};Username={ContainerFixture.PostgresUser};Password={ContainerFixture.PostgresPassword}";
+        optionsBuilder.UseNpgsql(postgresConnectionString, npgsqlOptions => npgsqlOptions.CommandTimeout(3600));
         serviceCollection.Replace(ServiceDescriptor.Scoped(provider => new ProductDbContext(optionsBuilder.Options)));
 
         // Configure Redis cache
